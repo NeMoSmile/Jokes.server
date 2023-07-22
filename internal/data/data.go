@@ -6,6 +6,9 @@ import (
 	"log"
 	"strconv"
 	"time"
+
+	"github.com/lib/pq"
+	_ "github.com/lib/pq"
 )
 
 const (
@@ -31,14 +34,12 @@ var db *sql.DB
 func init() {
 	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	var err error
-	// Подключаемся к базе данных
+
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {
 		log.Println(err)
 	}
-	defer db.Close()
 
-	// Создаем таблицу "users"
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS users (
   email VARCHAR(255) NOT NULL,
   password VARCHAR(255) NOT NULL,
@@ -46,13 +47,12 @@ func init() {
   w TEXT[],
   today INTEGER,
   month INTEGER,
-  last TIME
+  last VARCHAR(255) NOT NULL
  )`)
 	if err != nil {
 		log.Println(err)
 	}
 
-	// Создаем таблицу "jokes"
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS jokes (
 		email VARCHAR(255) NOT NULL,
   text TEXT NOT NULL
@@ -61,14 +61,24 @@ func init() {
 		log.Println(err)
 	}
 
-	fmt.Println("Таблицы успешно созданы!")
+	_, err = db.Exec(`DELETE FROM users`)
+	if err != nil {
+		log.Println(err)
+	}
+
+	_, err = db.Exec(`DELETE FROM jokes`)
+	if err != nil {
+		log.Println(err)
+	}
+
+	fmt.Println("Database connected")
 
 }
 
 func PageData(email string) PData {
 
 	first, second, third := best()
-	m := getName(email)
+	m := GetName(email)
 	today, month := me(email)
 
 	return PData{
@@ -107,21 +117,25 @@ func Check(email, pass string) int {
 }
 
 func Append(email, pass, username string) {
+	w := []string{}
+
 	_, err := db.Exec("INSERT INTO users (email, password, username, w, today, month, last) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-		email, pass, username, []string{}, 0, 0, "00:00:00")
+		email, pass, username, pq.Array(w), 0, 0, "00:00:00")
 	if err != nil {
 		log.Println(err)
 		return
 	}
+	fmt.Println("New user registered: " + username)
 
 }
 
 func Wdata(email string) []string {
 	var res []string
-	err := db.QueryRow(`SELECT w FROM users WHERE email = $1`, email).Scan(&res)
+	err := db.QueryRow(`SELECT w FROM users WHERE email = $1`, email).Scan(pq.Array(&res))
 	if err != nil {
 		log.Println(err)
 	}
+
 	return res
 }
 
@@ -142,17 +156,15 @@ func AddJoke(email, joke string) {
 
 func AddWJoke(email, joke string) {
 	var w []string
-	err := db.QueryRow("SELECT w FROM users WHERE email = $1", email).Scan(&w)
+	err := db.QueryRow("SELECT w FROM users WHERE email = $1", email).Scan(pq.Array(&w))
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	// Добавить текст в массив "w"
 	w = append(w, joke)
 
-	// Обновить запись в базе данных с новым массивом "w"
-	_, err = db.Exec("UPDATE users SET w = $1 WHERE email = $2", w, email)
+	_, err = db.Exec("UPDATE users SET w = $1 WHERE email = $2", pq.Array(w), email)
 	if err != nil {
 		log.Println(err)
 
@@ -176,7 +188,7 @@ func AddWJoke(email, joke string) {
 
 	today += 1
 
-	_, err = db.Exec("UPDATE users SET today = $1 WHERE email = $2", today, email)
+	_, err = db.Exec("UPDATE users SET today = $1 WHERE email = $2", today, user)
 	if err != nil {
 		log.Println(err)
 		return
@@ -191,7 +203,7 @@ func AddWJoke(email, joke string) {
 
 	month += 1
 
-	_, err = db.Exec("UPDATE users SET month = $1 WHERE email = $2", month, email)
+	_, err = db.Exec("UPDATE users SET month = $1 WHERE email = $2", month, user)
 	if err != nil {
 		log.Println(err)
 		return
@@ -199,7 +211,7 @@ func AddWJoke(email, joke string) {
 
 }
 
-func getName(email string) string {
+func GetName(email string) string {
 	var name string
 	err := db.QueryRow(`SELECT username FROM users WHERE email = $1`, email).Scan(&name)
 	if err != nil {
@@ -217,27 +229,29 @@ func CheckJoke(email, joke string) string {
 	if err != nil {
 		log.Println(err)
 	}
-	timeFormat := "15:04:05"
-	time2Str := time.Now().Format("15:04:05")
+	now := time.Now().Format("15:04:05")
+	resT, err := time.Parse(time.RFC3339, res)
+	if err != nil {
+		fmt.Println("Time parsing error:", err)
+	}
+	nowT, err := time.Parse("15:04:05", now)
+	if err != nil {
+		fmt.Println("Time parsing error:", err)
+	}
 
-	// Преобразование строк в значения time.Time
-	time1, _ := time.Parse(timeFormat, res)
-	time2, _ := time.Parse(timeFormat, time2Str)
+	dif := nowT.Sub(resT)
 
-	// Вычисление разницы между временами
-	diff := time2.Sub(time1)
-
-	if int(diff.Hours()) < 1 && res != "00:00:00" {
+	if dif < time.Hour && res != "00:00:00" {
 		return "It's been less than an hour since your last joke."
 	}
 
 	var count int
-	err = db.QueryRow(`SELECT COUNT(*) FROM jokes WHERE joke = $1`, joke).Scan(&count)
+	err = db.QueryRow(`SELECT COUNT(*) FROM jokes WHERE text = $1`, joke).Scan(&count)
 	if err != nil {
 		log.Println(err)
 	}
 
-	if count < 1 {
+	if count != 0 {
 		return "This joke was already written today"
 	}
 
@@ -246,7 +260,7 @@ func CheckJoke(email, joke string) string {
 
 func best() (string, string, string) {
 	var anser []string
-	rows, err := db.Query(`SELECT username FROM users ORDER BY today DESC LIMIT 3`)
+	rows, err := db.Query(`SELECT username, today FROM users ORDER BY today DESC LIMIT 3`)
 	if err != nil {
 		log.Println(err)
 	}
@@ -254,18 +268,28 @@ func best() (string, string, string) {
 
 	for rows.Next() {
 		var username string
+		var today int
 
-		err := rows.Scan(&username)
+		err := rows.Scan(&username, &today)
 		if err != nil {
 			log.Println(err)
 		}
 
-		anser = append(anser, username)
+		anser = append(anser, username+" "+strconv.Itoa(today))
 	}
 	if err = rows.Err(); err != nil {
 		log.Println(err)
 	}
-	return anser[0], anser[1], anser[2]
+	if len(anser) > 2 {
+		return anser[0], anser[1], anser[2]
+	}
+	if len(anser) == 2 {
+		return anser[0], anser[1], "-"
+	}
+	if len(anser) == 1 {
+		return anser[0], "-", "-"
+	}
+	return "-", "-", "-"
 
 }
 

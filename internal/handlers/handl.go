@@ -50,7 +50,6 @@ func MessageHandler(w http.ResponseWriter, r *http.Request) {
 
 	clientsManager.AddClient(client)
 
-	// Создаем горуту для чтения сообщений от данного клиента
 	go func() {
 		defer func() {
 			conn.Close()
@@ -76,7 +75,7 @@ func MessageHandler(w http.ResponseWriter, r *http.Request) {
 			if message.Outgoing {
 				erro := d.CheckJoke(message.Email, message.Text)
 				if erro == "" {
-					clientsManager.BroadcastMessage(conn, message.Text, message.Email, false)
+					clientsManager.BroadcastMessage(conn, message.Text, d.GetName(message.Email), false)
 					d.AddJoke(message.Email, message.Text)
 				} else {
 					clientsManager.BroadcastMessage(conn, erro, "", true)

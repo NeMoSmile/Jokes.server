@@ -14,7 +14,6 @@ func Start(host string) {
 
 	c := cron.New()
 
-	// Запуск задачи каждый день в 00:00:00
 	c.AddFunc("0 0 0 * * *", func() {
 		d.NewDay()
 	})

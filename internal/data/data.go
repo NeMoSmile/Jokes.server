@@ -61,15 +61,15 @@ func init() {
 		log.Println(err)
 	}
 
-	_, err = db.Exec(`DELETE FROM users`)
-	if err != nil {
-		log.Println(err)
-	}
+	// _, err = db.Exec(`DELETE FROM users`)
+	// if err != nil {
+	// 	log.Println(err)
+	// }
 
-	_, err = db.Exec(`DELETE FROM jokes`)
-	if err != nil {
-		log.Println(err)
-	}
+	// _, err = db.Exec(`DELETE FROM jokes`)
+	// if err != nil {
+	// 	log.Println(err)
+	// }
 
 	fmt.Println("Database connected")
 

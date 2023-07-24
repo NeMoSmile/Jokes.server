@@ -29,6 +29,14 @@ func Start(host string) {
 
 	http.HandleFunc("/wdata", h.WdataHandler)
 
+	http.HandleFunc("/send", h.SendHandler)
+
+	http.HandleFunc("/confirm", h.ConfirmHandler)
+
+	http.HandleFunc("/checkuser", h.CheckUserHandler)
+
+	http.HandleFunc("/getid", h.GetIdHandler)
+
 	fmt.Println("Server listening on " + host)
 
 	log.Fatal(http.ListenAndServe(host, nil))

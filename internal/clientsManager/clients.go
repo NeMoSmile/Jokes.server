@@ -80,21 +80,3 @@ func (cm *ClientsManager) BroadcastMessage(conn *websocket.Conn, text, username 
 		}
 	}
 }
-
-func SendMessage(message []byte, conn *websocket.Conn) error {
-	return conn.WriteMessage(websocket.TextMessage, message)
-}
-
-type RequestData struct {
-	Email string `json:"email"`
-}
-
-type PData struct {
-	FirstPl  string `json:"FirstPl"`
-	SecondPl string `json:"SecondPl"`
-	ThirdPl  string `json:"ThirdPl"`
-	MyTitle  string `json:"MyTitle"`
-	MyText1  string `json:"MyText1"`
-	MyText2  string `json:"MyText2"`
-	Email    string `json:"Email"`
-}

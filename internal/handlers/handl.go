@@ -8,12 +8,14 @@ import (
 
 	c "github.com/NeMoSmile/Jokes.server.git/internal/clientsManager"
 	d "github.com/NeMoSmile/Jokes.server.git/internal/data"
+
+	confirm "github.com/NeMoSmile/Jokes.server.git/internal/confirm"
 	"github.com/gorilla/websocket"
 )
 
 type Message struct {
 	Text     string `json:"message"`
-	Email    string `json:"email"`
+	Id       string `json:"id"`
 	Outgoing bool   `json:"outgoing"`
 }
 
@@ -32,7 +34,7 @@ func PagedataHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	json.NewEncoder(w).Encode(d.PageData(message["email"]))
+	json.NewEncoder(w).Encode(d.PageData(message["id"]))
 }
 
 func MessageHandler(w http.ResponseWriter, r *http.Request) {
@@ -73,15 +75,15 @@ func MessageHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if message.Outgoing {
-				erro := d.CheckJoke(message.Email, message.Text)
+				erro := d.CheckJoke(message.Id, message.Text)
 				if erro == "" {
-					clientsManager.BroadcastMessage(conn, message.Text, d.GetName(message.Email), false)
-					d.AddJoke(message.Email, message.Text)
+					clientsManager.BroadcastMessage(conn, message.Text, d.GetName(message.Id), false)
+					d.AddJoke(message.Id, message.Text)
 				} else {
 					clientsManager.BroadcastMessage(conn, erro, "", true)
 				}
 			} else {
-				d.AddWJoke(message.Email, message.Text)
+				d.AddWJoke(message.Id, message.Text)
 			}
 		}
 	}()
@@ -107,7 +109,7 @@ func AppendHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	d.Append(message["email"], message["pass"], message["name"])
+	json.NewEncoder(w).Encode(d.Append(message["email"], message["pass"], message["name"]))
 }
 
 func WdataHandler(w http.ResponseWriter, r *http.Request) {
@@ -118,5 +120,51 @@ func WdataHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	json.NewEncoder(w).Encode(d.Wdata(message["email"]))
+	json.NewEncoder(w).Encode(d.Wdata(message["id"]))
+}
+
+func SendHandler(w http.ResponseWriter, r *http.Request) {
+	var message map[string]string
+
+	err := json.NewDecoder(r.Body).Decode(&message)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	confirm.Send(message["email"])
+}
+
+func ConfirmHandler(w http.ResponseWriter, r *http.Request) {
+	var message map[string]string
+
+	err := json.NewDecoder(r.Body).Decode(&message)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	json.NewEncoder(w).Encode(confirm.Check(message["email"], message["code"]))
+}
+
+func CheckUserHandler(w http.ResponseWriter, r *http.Request) {
+
+	var message map[string]string
+
+	err := json.NewDecoder(r.Body).Decode(&message)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	json.NewEncoder(w).Encode(confirm.CheckUser(message["id"]))
+}
+
+func GetIdHandler(w http.ResponseWriter, r *http.Request) {
+
+	var message map[string]string
+
+	err := json.NewDecoder(r.Body).Decode(&message)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	json.NewEncoder(w).Encode(confirm.GetId(message["email"]))
 }

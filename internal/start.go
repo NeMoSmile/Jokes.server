@@ -14,27 +14,37 @@ func Start(host string) {
 
 	c := cron.New()
 
+	// The server clears the data every day
 	c.AddFunc("0 0 0 * * *", func() {
 		d.NewDay()
 	})
 	c.Start()
 
+	// websocket connection
 	http.HandleFunc("/ws", h.MessageHandler)
 
+	// Loading information on the page
 	http.HandleFunc("/pagedata", h.PagedataHandler)
 
+	// Checking if the user has entered their data correctly. If password and email are correct sent 1 if password is not correct 2 if user does not exist 3
 	http.HandleFunc("/check", h.CheckHandler)
 
+	// Adding a new user
 	http.HandleFunc("/append", h.AppendHandler)
 
+	// tagged user jokes
 	http.HandleFunc("/wdata", h.WdataHandler)
 
+	// sending confirmation code
 	http.HandleFunc("/send", h.SendHandler)
 
+	// check email verification code
 	http.HandleFunc("/confirm", h.ConfirmHandler)
 
+	// user existence check
 	http.HandleFunc("/checkuser", h.CheckUserHandler)
 
+	// getting user id
 	http.HandleFunc("/getid", h.GetIdHandler)
 
 	fmt.Println("Server listening on " + host)

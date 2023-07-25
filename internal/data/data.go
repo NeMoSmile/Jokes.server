@@ -13,11 +13,11 @@ import (
 )
 
 const (
-	host     = "localhost"
-	port     = 8082
-	user     = "postgres"
+	host     = "pg3.sweb.ru"
+	port     = 5432
+	user     = "samirtihon"
 	password = "yS72_3w*90P"
-	dbname   = "postgres"
+	dbname   = "samirtihon"
 )
 
 type PData struct {

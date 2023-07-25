@@ -41,26 +41,13 @@ func init() {
 		log.Println(err)
 	}
 
-	// _, err = Db.Exec("DROP TABLE IF EXISTS users CASCADE")
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-	// _, err = Db.Exec("DROP TABLE IF EXISTS jokes CASCADE")
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-	// _, err = Db.Exec("DROP TABLE IF EXISTS codes CASCADE")
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-
 	_, err = Db.Exec(`CREATE TABLE IF NOT EXISTS users (
 		id VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL,
   password VARCHAR(255) NOT NULL,
   username VARCHAR(255) NOT NULL,
   w TEXT[],
-  today VARCHAR(255) NOT NULL,
+  today INTEGER,
   month INTEGER,
   last VARCHAR(255) NOT NULL
  )`)
@@ -83,21 +70,6 @@ func init() {
 	if err != nil {
 		log.Println(err)
 	}
-
-	// _, err = Db.Exec(`DELETE FROM users`)
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-
-	// _, err = Db.Exec(`DELETE FROM jokes`)
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-
-	// _, err = Db.Exec(`DELETE FROM codes`)
-	// if err != nil {
-	// 	log.Println(err)
-	// }
 
 	fmt.Println("Database connected")
 

@@ -5,12 +5,15 @@ import (
 	"log"
 	"net/http"
 
+	commands "github.com/NeMoSmile/Jokes.server.git/internal/commands"
 	d "github.com/NeMoSmile/Jokes.server.git/internal/data"
 	h "github.com/NeMoSmile/Jokes.server.git/internal/handlers"
 	"github.com/robfig/cron"
 )
 
 func Start(host string) {
+
+	go commands.Listen()
 
 	c := cron.New()
 

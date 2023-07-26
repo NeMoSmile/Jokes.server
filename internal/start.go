@@ -23,6 +23,8 @@ func Start(host string) {
 	})
 	c.Start()
 
+	http.HandleFunc("/", h.No)
+
 	// websocket connection
 	http.HandleFunc("/ws", h.MessageHandler)
 

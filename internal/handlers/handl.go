@@ -168,3 +168,8 @@ func GetIdHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(confirm.GetId(message["email"]))
 }
+
+func No(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Fprintf(w, "Привет!")
+}

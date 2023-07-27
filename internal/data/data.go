@@ -413,9 +413,9 @@ func checkW(id string, text string) bool {
 	wdata := Wdata(id)
 	for _, w := range wdata {
 		if text == w {
-			return false
+			return true
 		}
 	}
-	return true
+	return false
 
 }

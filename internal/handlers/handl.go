@@ -178,7 +178,7 @@ func GetMess(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	json.NewEncoder(w).Encode(d.GetMess())
+	json.NewEncoder(w).Encode(d.GetMess(message["id"]))
 }
 
 func No(w http.ResponseWriter, r *http.Request) {

@@ -75,23 +75,49 @@ func init() {
 
 }
 
-func GetMess() []string {
-	rows, err := Db.Query("SELECT text FROM jokes ORDER BY id DESC")
+func GetMess(id string) []struct {
+	Who  string
+	Text string
+} {
+	rows, err := Db.Query(`SELECT id, text FROM jokes ORDER BY id DESC LIMIT 10`)
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer rows.Close()
 
-	var texts []string
+	var jokes []struct {
+		Who  string
+		Text string
+	}
+
 	for rows.Next() {
+		var joke struct {
+			Who  string
+			Text string
+		}
+		var id2 string
 		var text string
-		err := rows.Scan(&text)
+		err := rows.Scan(&id2, &text)
 		if err != nil {
 			fmt.Println(err)
 		}
-		texts = append(texts, text)
+
+		joke.Text = text
+
+		if id2 == id {
+			joke.Who = "you"
+		} else if checkW(id, text) {
+			joke.Who = "tag"
+		} else {
+			err = Db.QueryRow(`SELECT username FROM users WHERE id = $1`, id2).Scan(&joke.Who)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+		jokes = append(jokes, joke)
 	}
-	return texts
+
+	return jokes
 
 }
 
@@ -379,5 +405,16 @@ func NewDay() {
 	if err != nil {
 		log.Println(err)
 	}
+
+}
+
+func checkW(id string, text string) bool {
+	wdata := Wdata(id)
+	for _, w := range wdata {
+		if text == w {
+			return false
+		}
+	}
+	return true
 
 }

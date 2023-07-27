@@ -75,6 +75,26 @@ func init() {
 
 }
 
+func GetMess() []string {
+	rows, err := Db.Query("SELECT text FROM jokes ORDER BY id DESC")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer rows.Close()
+
+	var texts []string
+	for rows.Next() {
+		var text string
+		err := rows.Scan(&text)
+		if err != nil {
+			fmt.Println(err)
+		}
+		texts = append(texts, text)
+	}
+	return texts
+
+}
+
 func PageData(id string) PData {
 
 	first, second, third := best()

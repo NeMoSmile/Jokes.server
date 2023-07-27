@@ -169,6 +169,18 @@ func GetIdHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(confirm.GetId(message["email"]))
 }
 
+func GetMess(w http.ResponseWriter, r *http.Request) {
+
+	var message map[string]string
+
+	err := json.NewDecoder(r.Body).Decode(&message)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	json.NewEncoder(w).Encode(d.GetMess())
+}
+
 func No(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(w, "Привет!")

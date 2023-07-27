@@ -52,6 +52,8 @@ func Start(host string) {
 	// getting user id
 	http.HandleFunc("/getid", h.GetIdHandler)
 
+	http.HandleFunc("/getmess", h.GetMess)
+
 	fmt.Println("Server listening on " + host)
 
 	log.Fatal(http.ListenAndServe(host, nil))

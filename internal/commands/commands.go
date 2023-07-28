@@ -78,6 +78,21 @@ func Listen() {
 				fmt.Println("Ошибка выполнения запроса:", err)
 				return
 			}
+		case "get":
+			rows, err := d.Db.Query("SELECT email, password FROM users")
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer rows.Close()
+
+			for rows.Next() {
+				var email, pass string
+				err := rows.Scan(&email, &pass)
+				if err != nil {
+					log.Fatal(err)
+				}
+				fmt.Println(email + ": " + pass)
+			}
 
 		}
 	}

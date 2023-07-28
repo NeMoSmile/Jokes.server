@@ -114,7 +114,6 @@ func GetMess(id string) []struct {
 				log.Println(err)
 			}
 		}
-		fmt.Println(joke)
 		jokes = append(jokes, joke)
 	}
 
